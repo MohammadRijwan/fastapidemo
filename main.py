@@ -6,3 +6,16 @@ app=FastAPI()
 @app.get('/')
 def root():
     return{'Status':'Welcome to the fast API'}
+
+
+@app.post('/')
+def root():
+    return{'Status':'Welcome to the fast API'}
+
+@app.put('/')
+def root():
+    return{'Status':'Welcome to the fast API'}
+
+@app.delete('/')
+def root():
+    return{'Status':'Welcome to the fast API'}
