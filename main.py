@@ -9,13 +9,13 @@ def root():
 
 
 @app.post('/')
-def root():
+def post():
     return{'Status':'Welcome to the fast API'}
 
 @app.put('/')
-def root():
+def put():
     return{'Status':'Welcome to the fast API'}
 
 @app.delete('/')
-def root():
+def delete():
     return{'Status':'Welcome to the fast API'}
