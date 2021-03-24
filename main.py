@@ -6,6 +6,8 @@ from pydantic import BaseModel
 import os
 import urllib
 import psycopg2
+import uuid, datetime
+import model as noteModel
 
 
 DATABASE_URL = "postgres://rydhmtmngcyeod:2c0170103a7cae2971c9e893c5281026ac584f2f40e128815212e9874b761e8e@ec2-52-71-161-140.compute-1.amazonaws.com:5432/d1p3fpsus6u211"
@@ -21,18 +23,10 @@ notes = sqlalchemy.Table(
     sqlalchemy.Column("completed", sqlalchemy.Boolean),
 )
 
+
 engine = sqlalchemy.create_engine(DATABASE_URL)
 
 metadata.create_all(engine)
-
-class NoteIn(BaseModel):
-    text: str
-    completed: bool
-
-class Note(BaseModel):
-    id: int
-    text: str
-    completed: bool
 
 
 app = FastAPI(title="REST API using FastAPI PostgreSQL Async EndPoints")
@@ -54,27 +48,27 @@ async def shutdown():
     await database.disconnect()
 
 
-@app.post("/notes/", response_model=Note, status_code = status.HTTP_201_CREATED)
-async def create_note(note: NoteIn):
+@app.post("/notes/", response_model=noteModel.Note, status_code = status.HTTP_201_CREATED)
+async def create_note(note: noteModel.NoteIn):
     query = notes.insert().values(text=note.text, completed=note.completed)
     last_record_id = await database.execute(query)
     return {**note.dict(), "id": last_record_id}
 
 
-@app.put("/notes/{note_id}/", response_model=Note, status_code = status.HTTP_200_OK)
-async def update_note(note_id: int, payload: NoteIn):
+@app.put("/notes/{note_id}/", response_model=noteModel.Note, status_code = status.HTTP_200_OK)
+async def update_note(note_id: int, payload: noteModel.NoteIn):
     query = notes.update().where(notes.c.id == note_id).values(text=payload.text, completed=payload.completed)
     await database.execute(query)
     return {**payload.dict(), "id": note_id}
 
 
-@app.get("/notes/", response_model=List[Note], status_code = status.HTTP_200_OK)
+@app.get("/notes/", response_model=List[noteModel.Note], status_code = status.HTTP_200_OK)
 async def read_notes(skip: int = 0, take: int = 20):
     query = notes.select().offset(skip).limit(take)
     return await database.fetch_all(query)
 
 
-@app.get("/notes/{note_id}/", response_model=Note, status_code = status.HTTP_200_OK)
+@app.get("/notes/{note_id}/", response_model=noteModel.Note, status_code = status.HTTP_200_OK)
 async def read_notes(note_id: int):
     query = notes.select().where(notes.c.id == note_id)
     return await database.fetch_one(query)
